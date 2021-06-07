@@ -23,7 +23,8 @@ public class RadialTrigger : MonoBehaviour
         var diff = objPos - transform.position;
 
         // optimized for treshold, no actual distance required, just use squared version of equation
-        var diffDist = diff.x * diff.x + diff.y * diff.y + diff.z * diff.z;
+        //var diffDist = diff.x * diff.x + diff.y * diff.y + diff.z * diff.z;
+        var diffDist = diff.sqrMagnitude;
         return diffDist < triggerRadius * triggerRadius;
     }
 }
