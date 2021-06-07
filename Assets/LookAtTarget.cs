@@ -22,11 +22,15 @@ public class LookAtTarget : MonoBehaviour
 
     bool LookingAt(Vector3 targetPos)
     {
-        var look = transform.position + transform.right;
-        var dotProd = look.x * targetPos.x +
-                    look.y * targetPos.y +
-                    look.z * targetPos.z;
+        var look = transform.right;
+        var targetLook = (targetPos - transform.position).normalized;
+        var dotProd = look.x * targetLook.x +
+                    look.y * targetLook.y +
+                    look.z * targetLook.z;
 
+        Gizmos.color = new Color(0.1f, 0.5f, 0.0f);
+
+        Gizmos.DrawLine(transform.position, transform.position + targetLook);
         return dotProd >= lookAngleTreshold;
     }
 }
