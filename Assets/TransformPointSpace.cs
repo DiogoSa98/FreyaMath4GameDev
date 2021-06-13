@@ -6,40 +6,53 @@ using UnityEditor;
 
 public class TransformPointSpace : MonoBehaviour
 {
-    [SerializeField] Transform point;
-    [SerializeField] Transform validationPoint;
+    [SerializeField] Transform worldPoint;
+    [SerializeField] Transform localPoint;
     [SerializeField] bool displayLocalSpaceCoords;
 #if UNITY_EDITOR
     void OnDrawGizmos()
     {
-        Gizmos.color = new Color(0f, 0.8f, 0.1f);
-        var validationPointPosition = displayLocalSpaceCoords ? validationPoint.localPosition : validationPoint.position;
-        Gizmos.DrawSphere(validationPoint.position, 0.04f);
-        Handles.Label(new Vector3(validationPoint.position.x, validationPoint.position.y - 0.06f, validationPoint.position.z), "validation point: (" + Math.Round(validationPointPosition.x, 3) + ", " + Math.Round(validationPointPosition.y, 3) + ", " + Math.Round(validationPointPosition.z, 3) + ")");
-        
-        Vector3 pointPosition;
+        Vector3 localPointPosition;
+
+        Vector3 worldPointPosition;
         if (displayLocalSpaceCoords)
         {
-            var baseLocalPos = point.position - transform.position;
-            // accounting for rotation
-            var x2 = transform.right.x * baseLocalPos.x - transform.right.y * baseLocalPos.y;
-            var y2 = transform.right.y * baseLocalPos.x + transform.right.x * baseLocalPos.y;
-            pointPosition = new Vector3(x2, y2, baseLocalPos.z);
+            localPointPosition = localPoint.localPosition;
+
+            var baseLocalPos = worldPoint.position - transform.position;
+            // projecting to localSpace
+            var x = Vector2.Dot(transform.right, baseLocalPos);
+            var y = Vector2.Dot(transform.up, baseLocalPos);
+            worldPointPosition = new Vector3(x, y, baseLocalPos.z);
         }
         else
         {
-            pointPosition = point.position;
+            worldPointPosition = worldPoint.position;
+
+            // projecting to localSpace
+            Vector2 worldOffset = transform.right * localPoint.localPosition.x + transform.up * localPoint.localPosition.y;
+            localPointPosition = new Vector3(worldOffset.x, worldOffset.y, localPoint.position.z) + transform.position;
         }
 
+
+        Gizmos.color = new Color(0f, 0.8f, 0.1f);
+        Gizmos.DrawSphere(localPoint.position, 0.04f);
+        Handles.Label(new Vector3(localPoint.position.x, localPoint.position.y - 0.06f, localPoint.position.z), "local point: (" + Math.Round(localPointPosition.x, 3) + ", " + Math.Round(localPointPosition.y, 3) + ", " + Math.Round(localPointPosition.z, 3) + ")");
+
         Gizmos.color = new Color(1f, 0.5f, 0.0f);
-        //Gizmos.DrawSphere(point.position, 0.02f);
-        Gizmos.DrawSphere(point.position, 0.02f);
-        Handles.Label(new Vector3(point.position.x, point.position.y+0.06f, point.position.z), "test point: ("+ Math.Round(pointPosition.x, 3)+", "+ Math.Round(pointPosition.y, 3) + ", "+ Math.Round(pointPosition.z, 3) + ")");
+        Gizmos.DrawSphere(worldPoint.position, 0.04f);
+        Handles.Label(new Vector3(worldPoint.position.x, worldPoint.position.y+0.06f, worldPoint.position.z), "world point: ("+ Math.Round(worldPointPosition.x, 3)+", "+ Math.Round(worldPointPosition.y, 3) + ", "+ Math.Round(worldPointPosition.z, 3) + ")");
 
         Gizmos.color = new Color(0.5f, 0.5f, 0.0f);
-        Gizmos.DrawLine(Vector3.zero, point.position); // vector from world space
+        Gizmos.DrawLine(Vector3.zero, worldPoint.position); // vector from world space
+        Gizmos.color = new Color(1f, 0f, 0f);
+        Gizmos.DrawLine(Vector3.zero, Vector3.right * 0.2f);
+        Gizmos.DrawLine(transform.position, transform.position + transform.right * 0.2f);
+        Gizmos.color = new Color(0f, 1f, 0f);
+        Gizmos.DrawLine(Vector3.zero, Vector3.up * 0.2f);
+        Gizmos.DrawLine(transform.position, transform.position + transform.up * 0.2f);
         Gizmos.color = new Color(0.0f, 0.5f, 0.5f);
-        Gizmos.DrawLine(transform.position, point.position); // vector from local space
+        Gizmos.DrawLine(transform.position, worldPoint.position); // vector from local space
     }
 #endif
 }
