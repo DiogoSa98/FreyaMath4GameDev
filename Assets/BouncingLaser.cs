@@ -35,42 +35,31 @@ public class BouncingLaser : MonoBehaviour
                 DrawRay(hitPos, forward);
 
                 emmissionPos = hitPos;
-                lookDir = BounceDirection(lookDir, normal, emmissionPos);
+                lookDir = BounceDirection(lookDir, normal);
             }
             else
             {
                 Handles.color = Color.cyan;
                 DrawRay(emmissionPos, lookDir);
-                Debug.Log("lkashdjf");
                 break;
             }
-            Handles.color = Color.cyan;
-            //DrawRay(emmissionPos, lookDir);
         }
     }
 
-    private Vector3 BounceDirection(Vector3 dir1, Vector3 normal, Vector3 hitPos)
+    private Vector3 BounceDirection(Vector3 dir1, Vector3 normal)
     {
         var yLocal = Vector3.Dot(normal, -dir1);
-        Debug.Log("yLocal" + yLocal);
         var right = Vector3.Cross(normal, dir1).normalized; // x local always 0
-        //var xLocal = Vector3.Dot(right, dir1);
-        //Debug.Log("xLocal" + xLocal);
         var forward = Vector3.Cross(right, normal).normalized;
         var zLocal = Vector3.Dot(forward, dir1);
-        Debug.Log("zLocal" + zLocal);
-        var localDir = new Vector4(0, yLocal, zLocal, 0);
-        Debug.Log("localDir" + localDir);
+        var localDir = new Vector4(0, yLocal, zLocal, 0); // last point 0 cause only dir
 
         //covert local dir to world dir
         var matrix = new Matrix4x4();
         matrix.SetColumn(0, right);     
         matrix.SetColumn(1, normal);
         matrix.SetColumn(2, forward);
-        //matrix.SetColumn(3, new Vector4(hitPos.x, hitPos.y, hitPos.z, 1));
-    
-        Vector3 b = matrix.MultiplyPoint3x4(localDir);
-        Debug.Log("world dir" + b);
-        return b;
+        //matrix.SetColumn(3, new Vector4(hitPos.x, hitPos.y, hitPos.z, 1)); not needed cause only converting dir
+        return matrix.MultiplyPoint3x4(localDir);
     }
 }
