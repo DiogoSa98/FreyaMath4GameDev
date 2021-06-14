@@ -6,16 +6,6 @@ using UnityEditor;
 public class BouncingLaser : MonoBehaviour
 {
     [SerializeField] [Range(0, 10)] int bounceCount;
-    void Start()
-    {
-        
-    }
-
-    void Update()
-    {
-        
-    }
-
     private void OnDrawGizmos()
     {
         void DrawRay(Vector3 p, Vector3 dir) => Handles.DrawAAPolyLine(p, p + dir);
