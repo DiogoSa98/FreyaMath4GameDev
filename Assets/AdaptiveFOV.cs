@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -7,44 +9,58 @@ public class AdaptiveFOV : MonoBehaviour
 
     [SerializeField] Camera cam;
     [SerializeField] Transform[] objects;
+    List<float> objectsRadius = new List<float>();
     void DrawRay(Vector3 p, Vector3 dir) => Handles.DrawAAPolyLine(p, p + dir);
     float RadiansToDegree(float angRad) => angRad * 360 / TAU;
 
     private void OnDrawGizmos()
     {
-        Gizmos.color = Color.white;
-
-        var furthestObject = GetFurthestObject(out float opposite, out float hipothenuse);
+        GiveObjectsRadius();
+        //var furthestObject = GetFurthestObject(out float opposite, out float hipothenuse);
+        var fovAngle = GetBiggerAngle(out Vector3 selectedObject);
         Handles.color = Color.cyan;
-        Handles.DrawAAPolyLine(cam.transform.position, furthestObject);
+        Handles.DrawAAPolyLine(cam.transform.position, selectedObject);
 
-        cam.fieldOfView = RadiansToDegree(Mathf.Asin(opposite / hipothenuse)) * 2;
+        cam.fieldOfView = RadiansToDegree(fovAngle) * 2;
     }
 
-    Vector3 GetFurthestObject(out float maxDistance, out float relativeVecDistance)
+    void GiveObjectsRadius()
     {
-        maxDistance = 0f;
-        relativeVecDistance = 0f;
+        Random.InitState(8);
+        Gizmos.color = Color.grey;
+        for (int i = 0; i < objects.Length; i++)
+        {
+            var radius = Random.Range(0.4f, 1.5f);
+            objectsRadius.Add(radius);
+            Gizmos.DrawWireSphere(objects[i].position, radius);
+        }
+    }
+
+    float GetBiggerAngle(out Vector3 selectedObject)
+    {
+        var maxAngle = 0f;
+        selectedObject = Vector3.zero;
+        
         var camUp = cam.transform.up;
-        Vector3 furthestObject = Vector3.zero;
+
         foreach (var o in objects)
         {
             var relativePos = o.position - cam.transform.position;
-            Handles.color = Color.white;
+            Handles.color = Color.gray;
             Handles.DrawAAPolyLine(cam.transform.position, o.position);
 
             var distanceY = Mathf.Abs(Vector3.Dot(camUp, relativePos));
             Handles.color = Color.red;
             Handles.DrawAAPolyLine(o.position, o.position + cam.transform.up * -Vector3.Dot(camUp, relativePos));
 
-            if (distanceY > maxDistance)
+            var angle = Mathf.Asin(distanceY / relativePos.magnitude);
+            if (angle > maxAngle)
             {
-                relativeVecDistance = relativePos.magnitude;
-                maxDistance = distanceY;
-                furthestObject = o.position;
+                selectedObject = o.position;
+                maxAngle = angle;
             }
         }
 
-        return furthestObject;
+        return maxAngle;
     }
 }
