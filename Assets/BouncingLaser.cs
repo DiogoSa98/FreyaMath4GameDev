@@ -35,7 +35,8 @@ public class BouncingLaser : MonoBehaviour
                 DrawRay(hitPos, forward);
 
                 emmissionPos = hitPos;
-                lookDir = BounceDirection(lookDir, normal);
+                //lookDir = BounceDirection(lookDir, normal);
+                lookDir = BounceDirectionQuickMath(lookDir, normal);
             }
             else
             {
@@ -61,5 +62,11 @@ public class BouncingLaser : MonoBehaviour
         matrix.SetColumn(2, forward);
         //matrix.SetColumn(3, new Vector4(hitPos.x, hitPos.y, hitPos.z, 1)); not needed cause only converting dir
         return matrix.MultiplyPoint3x4(localDir);
+    }
+
+    private Vector3 BounceDirectionQuickMath(Vector3 dir, Vector3 normal)
+    {
+        var yProj = Vector3.Dot(normal, dir) * normal;
+        return dir - 2 * yProj;
     }
 }
