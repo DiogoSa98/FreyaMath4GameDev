@@ -9,14 +9,14 @@ public class AdaptiveFOV : MonoBehaviour
 
     [SerializeField] Camera cam;
     [SerializeField] Transform[] objects;
-    List<float> objectsRadius = new List<float>();
+    List<float> objectsRadius;
     void DrawRay(Vector3 p, Vector3 dir) => Handles.DrawAAPolyLine(p, p + dir);
     float RadiansToDegree(float angRad) => angRad * 360 / TAU;
 
     private void OnDrawGizmos()
     {
         GiveObjectsRadius();
-        //var furthestObject = GetFurthestObject(out float opposite, out float hipothenuse);
+
         var fovAngle = GetBiggerAngle(out Vector3 selectedObject);
         Handles.color = Color.cyan;
         Handles.DrawAAPolyLine(cam.transform.position, selectedObject);
@@ -30,7 +30,8 @@ public class AdaptiveFOV : MonoBehaviour
         Gizmos.color = Color.grey;
         for (int i = 0; i < objects.Length; i++)
         {
-            var radius = Random.Range(0.4f, 1.5f);
+            //float radius = Random.Range(0.4f, 1.5f);
+            float radius = 1f;
             objectsRadius.Add(radius);
             Gizmos.DrawWireSphere(objects[i].position, radius);
         }
@@ -43,20 +44,27 @@ public class AdaptiveFOV : MonoBehaviour
         
         var camUp = cam.transform.up;
 
-        foreach (var o in objects)
+        for (int i=0; i<objects.Length; i++)
         {
-            var relativePos = o.position - cam.transform.position;
+            var obj = objects[i];
+            var relativePos = obj.position - cam.transform.position;
             Handles.color = Color.gray;
-            Handles.DrawAAPolyLine(cam.transform.position, o.position);
+            Handles.DrawAAPolyLine(cam.transform.position, obj.position);
 
             var distanceY = Mathf.Abs(Vector3.Dot(camUp, relativePos));
             Handles.color = Color.red;
-            Handles.DrawAAPolyLine(o.position, o.position + cam.transform.up * -Vector3.Dot(camUp, relativePos));
+            Handles.DrawAAPolyLine(obj.position, obj.position + cam.transform.up * -Vector3.Dot(camUp, relativePos));
 
-            var angle = Mathf.Asin(distanceY / relativePos.magnitude);
+            var angleToPoint = Mathf.Asin(distanceY / relativePos.magnitude);
+            var angleToRadius = Mathf.Asin(1 / relativePos.magnitude);
+            //Debug.Log(objectsRadius[i]); objectsRadius list is fucked...
+            var angle = angleToPoint + angleToRadius;
+            Handles.Label(obj.position + Vector3.up * 0.5f, RadiansToDegree(angleToRadius).ToString());
+            Handles.Label(obj.position - Vector3.up * 0.5f, RadiansToDegree(angleToPoint).ToString());
+
             if (angle > maxAngle)
             {
-                selectedObject = o.position;
+                selectedObject = obj.position;
                 maxAngle = angle;
             }
         }
