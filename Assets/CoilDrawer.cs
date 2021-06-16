@@ -10,12 +10,14 @@ public class CoilDrawer : MonoBehaviour
     [SerializeField] [Range (1, 10)] int numberOfTurns;
     [SerializeField] [Range(0.1f, 4f)] float coilHeight;
     [SerializeField] [Range(0.1f, 4f)] float coilRadius;
+    [SerializeField] [Range(1f, 8f)] float coilLineWidth;
+    [SerializeField] Color coilColorStart;
+    [SerializeField] Color coilColorEnd;
     void DrawRay(Vector3 p, Vector3 dir) => Handles.DrawAAPolyLine(p, p + dir);
 
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
-        
 
         var heightPerTurn = coilHeight / (float)numberOfTurns;
         Handles.color = Color.green;
@@ -26,7 +28,7 @@ public class CoilDrawer : MonoBehaviour
         var p0 = transform.position;
         for (int i = 0; i < numberOfTurns; i++)
         {
-            for (float stepTurnPercentage = 0f; stepTurnPercentage < TAU; stepTurnPercentage += 0.05f)
+            for (float stepTurnPercentage = 0f; stepTurnPercentage < TAU; stepTurnPercentage += 0.01f)
             {
                 var angleStep = stepTurnPercentage;
                 var turnXZ = AngleToDir(angleStep) * coilRadius;
@@ -36,8 +38,11 @@ public class CoilDrawer : MonoBehaviour
 
                 var p1 = new Vector3(turnXZ.x, height, turnXZ.y) + transform.position;
                 //Gizmos.DrawSphere(p1, 0.02f);
-                Handles.color = Color.white;
-                Handles.DrawAAPolyLine(p0, p1);
+                if (p0 != transform.position)
+                {
+                    Handles.color = Color.Lerp(coilColorStart, coilColorEnd, MapFloat(0f, coilHeight, 0f, 01f, height));
+                    Handles.DrawAAPolyLine(coilLineWidth, p0, p1);
+                }
 
                 p0 = p1;
             }
@@ -47,5 +52,10 @@ public class CoilDrawer : MonoBehaviour
     Vector2 AngleToDir(float angleRad)
     {
         return new Vector2(Mathf.Cos(angleRad), Mathf.Sin(angleRad));
+    }
+
+    float MapFloat(float iMin, float iMax, float oMin, float oMax, float value)
+    {
+        return oMin + (value - iMin) * (oMax - oMin) / (iMax - iMin);
     }
 }
